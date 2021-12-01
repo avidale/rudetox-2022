@@ -1,0 +1,71 @@
+# Build an example competition
+---
+title: RuDetoxEval
+description: Dialogue shared task 2022
+image: sk_logo.png
+has_registration: True
+end_date: 
+html: 
+    overview: overview.html
+    evaluation: evaluation.html
+    terms: terms_and_conditions.html
+    data: data.html
+phases:
+    1:
+        phasenumber: 1
+        label: "Development"
+        start_date: 2021-11-25
+        max_submissions: 100
+        is_scoring_only: False
+        scoring_program: program.zip
+        reference_data: reference_dev.zip
+        public_data: dataset_dev.zip
+    2:
+        phasenumber: 2
+        label: "Final test"
+        start_date: 2021-11-26
+        max_submissions: 3
+        is_scoring_only: False
+        scoring_program: program.zip
+        reference_data: reference_test.zip
+        public_data: dataset_test.zip
+    3:
+        phasenumber: 3
+        label: "Post-evaluation"
+        start_date: 2021-11-27
+        max_submissions: 3
+        is_scoring_only: False
+        scoring_program: program.zip
+        reference_data: reference_test.zip
+        public_data: dataset_test.zip
+
+leaderboard:
+    leaderboards:
+        Results: &RESULTS
+            label: Results
+            rank: 1
+    columns:
+        accuracy:
+            leaderboard: *RESULTS
+            label: Style transfer accuracy
+            numeric_format: 6
+        similarity:
+            leaderboard: *RESULTS
+            label: Meaning preservation
+            numeric_format: 6
+        cola:
+            leaderboard: *RESULTS
+            label: CoLA Fluency
+            numeric_format: 6
+        perplexity:
+            leaderboard: *RESULTS
+            label: GPT Fluency
+            numeric_format: 6
+        fluency:
+            leaderboard: *RESULTS
+            label: Joint fluency
+            numeric_format: 6
+        joint:
+            leaderboard: *RESULTS
+            label: Joint score
+            numeric_format: 6
