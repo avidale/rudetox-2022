@@ -2,7 +2,7 @@
 import torch
 from flask import Flask, jsonify, request, abort
 from tst_evaluation import evaluate_formality_transfer
-from transformers import AutoTokenizer, AutoModelForSequenceClassification, AutoModelForCausalLM
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 app = Flask(__name__)
 
@@ -32,8 +32,6 @@ def evaluate(original, rewritten):
         meaning_tokenizer=meaning_tokenizer,
         cola_model=cola_model,
         cola_tokenizer=cola_tolenizer,
-        gpt_model=gpt_model,
-        gpt_tokenizer=gpt_tokenizer,
         style_target_label=0,
         aggregate=True)
 
@@ -51,6 +49,4 @@ if __name__ == '__main__':
     style_model, style_tokenizer = load_model('SkolkovoInstitute/russian_toxicity_classifier', use_cuda=False)
     meaning_model, meaning_tokenizer = load_model('cointegrated/rubert-base-cased-nli-twoway', use_cuda=False)
     cola_model, cola_tolenizer = load_model('cointegrated/rubert-base-corruption-detector', use_cuda=False)
-    gpt_model, gpt_tokenizer = load_model('sberbank-ai/rugpt3medium_based_on_gpt2', model_class=AutoModelForCausalLM,
-                                          use_cuda=False)
     app.run(port=10301, host='0.0.0.0', debug=True)

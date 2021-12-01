@@ -102,59 +102,6 @@ def evaluate_cola(
     return scores
 
 
-def get_text_perplexity(text, model, tokenizer, eos='\n', bos='\n'):
-    encodings = tokenizer(eos + text + bos, return_tensors='pt', truncation=True)
-    input_ids = encodings.input_ids.to(model.device)
-    n_tokens = max(0, len(input_ids[0]) - 1)
-    if n_tokens > 0:
-        with torch.no_grad():
-            outputs = model(input_ids, labels=input_ids)
-            loss = outputs.loss.item()
-    else:
-        loss = 0
-    return loss, n_tokens
-
-
-def get_corpus_perplexity(model, tokenizer, texts, unit='token', verbose=True, **kwargs):
-    loss = []
-    n_tokens = []
-    pb = tqdm(texts) if verbose else  texts
-    for text in pb:
-        ll, w = get_text_perplexity(text, model, tokenizer, **kwargs)
-        loss.append(ll)
-        n_tokens.append(w)
-    loss = np.array(loss)
-    n_tokens = np.array(n_tokens)
-    if unit == 'token': 
-        return loss
-    elif unit == 'text':
-        return loss * n_tokens
-    elif unit == 'char':
-        return loss * n_tokens / [len(t) for t in texts]
-    else:
-        raise ValueError('unit should be one of ["token", "text", "char"]')
-
-
-def evaluate_perplexity(
-    model,
-    tokenizer,
-    texts,
-    original_texts=None,
-    unit='token',
-    verbose=False,
-    comparison='relative',
-):
-    scores = -get_corpus_perplexity(model, tokenizer, texts, unit=unit, verbose=verbose)
-    if comparison and original_texts is not None:
-        original_scores = -get_corpus_perplexity(original_texts, model, tokenizer, unit=unit, verbose=verbose)
-        scores = scores - original_scores
-        if 'cap' in comparison:
-            scores = np.minimum(0, scores)
-        elif 'abs' in comparison:
-            scores = -np.abs(scores)
-    return scores
-
-
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
@@ -168,8 +115,6 @@ def evaluate_formality_transfer(
     meaning_tokenizer,
     cola_model,
     cola_tokenizer,
-    gpt_model,
-    gpt_tokenizer,
     style_target_label=1,
     meaning_target_label='entailment',
     cola_weight=0.5,
@@ -199,19 +144,12 @@ def evaluate_formality_transfer(
         rewritten_texts, 
         batch_size=batch_size, verbose=verbose,
     )
-    perplexity = evaluate_perplexity(
-        gpt_model,
-        gpt_tokenizer,
-        rewritten_texts,
-        original_texts=original_texts, verbose=verbose, comparison='relative',
-    )
-    fluency = cola ** cola_weight * sigmoid(perplexity) ** (1-cola_weight)
+
+    fluency = cola
     joint = accuracy * similarity * fluency
     if verbose:
         print(f'Style accuracy:       {np.mean(accuracy)}')
         print(f'Meaning preservation: {np.mean(similarity)}')
-        print(f'CoLA fluency:         {np.mean(cola)}')
-        print(f'GPT fluency:          {np.mean(perplexity)}')
         print(f'Joint fluency:        {np.mean(fluency)}')
         print(f'Joint score:          {np.mean(joint)}')
     result = dict(
@@ -223,5 +161,5 @@ def evaluate_formality_transfer(
         joint=joint
     )
     if aggregate:
-        return {k: np.mean(v) for k, v in result.items()}
+        return {k: float(np.mean(v)) for k, v in result.items()}
     return result
