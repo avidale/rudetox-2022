@@ -155,8 +155,6 @@ def evaluate_formality_transfer(
     result = dict(
         accuracy=accuracy,
         similarity=similarity,
-        cola=cola,
-        perplexity=perplexity,
         fluency=fluency,
         joint=joint
     )
